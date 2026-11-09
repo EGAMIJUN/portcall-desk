@@ -1,0 +1,17 @@
+{
+  "name": "portcall-desk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Husbanding checklists for vessel calls: a Rovo agent and a Jira page.",
+  "scripts": {
+    "test": "bash scripts/test.sh",
+    "lint": "forge lint"
+  },
+  "dependencies": {
+    "@forge/api": "^8.4.0",
+    "@forge/bridge": "^7.2.1",
+    "@forge/react": "^12.4.0",
+    "@forge/resolver": "^2.0.2",
+    "react": "^18.2.0"
+  }
+}

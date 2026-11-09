@@ -1,0 +1,145 @@
+modules:
+  jira:globalPage:
+    - key: portcall-desk-page
+      resource: main
+      resolver:
+        function: resolver
+      render: native
+      title: PortCall Desk
+  rovo:agent:
+    - key: husbanding-coordinator
+      name: Husbanding Coordinator
+      description: Turns vessel arrival information into a managed husbanding
+        checklist in Jira and keeps it current when the ETA changes.
+      prompt: resource:agent-resource;prompts/agent-prompt.txt
+      conversationStarters:
+        - Create a port call for MV EXAMPLE, ETA 2026-12-01 09:00
+        - Which port calls need attention today?
+        - The ETA of MV EXAMPLE moved to 2026-12-02 14:00
+      actions:
+        - create-port-call
+        - update-eta
+        - get-port-call-status
+        - list-port-calls
+  action:
+    - key: create-port-call
+      name: Create port call
+      function: create-port-call-fn
+      actionVerb: CREATE
+      description: Create a port call (one Epic for the vessel plus the standard
+        husbanding tasks with due dates from ETA/ETD) in a Jira project.
+      inputs:
+        vesselName:
+          title: Vessel name
+          type: string
+          required: true
+          description: Name of the vessel
+        eta:
+          title: ETA
+          type: string
+          required: true
+          description: Estimated time of arrival in Japan time, formatted YYYY-MM-DD HH:mm
+        etd:
+          title: ETD
+          type: string
+          required: false
+          description: Estimated time of departure in Japan time, formatted YYYY-MM-DD
+            HH:mm. Defaults to ETA plus 48 hours.
+        berth:
+          title: Berth
+          type: string
+          required: false
+          description: Berth or terminal name
+        imo:
+          title: IMO number
+          type: string
+          required: false
+          description: IMO number of the vessel
+        projectKey:
+          title: Jira project key
+          type: string
+          required: false
+          description: Key of the Jira project to use. If omitted, a project with port in
+            its name or the first project is used.
+    - key: update-eta
+      name: Update ETA
+      function: update-eta-fn
+      actionVerb: UPDATE
+      description: Change the ETA (and optionally ETD) of an existing port call and
+        move the due dates of all open tasks.
+      inputs:
+        epicKey:
+          title: Port call key
+          type: string
+          required: false
+          description: Jira key of the port call Epic, for example PORT-12
+        vesselName:
+          title: Vessel name
+          type: string
+          required: false
+          description: Vessel name, used when the key is not known
+        newEta:
+          title: New ETA
+          type: string
+          required: true
+          description: New ETA in Japan time, formatted YYYY-MM-DD HH:mm
+        newEtd:
+          title: New ETD
+          type: string
+          required: false
+          description: New ETD in Japan time. If omitted the length of stay stays the same.
+    - key: get-port-call-status
+      name: Get port call status
+      function: status-fn
+      actionVerb: GET
+      description: Get the progress of one port call - tasks done, overdue tasks,
+        tasks due within 24 hours and the next open tasks.
+      inputs:
+        epicKey:
+          title: Port call key
+          type: string
+          required: false
+          description: Jira key of the port call Epic
+        vesselName:
+          title: Vessel name
+          type: string
+          required: false
+          description: Vessel name, used when the key is not known
+    - key: list-port-calls
+      name: List port calls
+      function: list-fn
+      actionVerb: GET
+      description: List all port calls with ETA, progress, overdue tasks and tasks due
+        within 24 hours.
+  rovo:mcp:
+    - key: portcall-mcp
+      name: PortCall Desk MCP
+      tools:
+        - create-port-call
+        - update-eta
+        - get-port-call-status
+        - list-port-calls
+  function:
+    - key: resolver
+      handler: resolver.handler
+    - key: create-port-call-fn
+      handler: actions.createPortCallAction
+    - key: update-eta-fn
+      handler: actions.updateEtaAction
+    - key: status-fn
+      handler: actions.statusAction
+    - key: list-fn
+      handler: actions.listAction
+resources:
+  - key: main
+    path: src/frontend/index.jsx
+  - key: agent-resource
+    path: resource/agent
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+app:
+  runtime:
+    name: nodejs22.x
+  id: ari:cloud:ecosystem::app/7b898428-a9f6-4083-89b9-ef4709a9d488
