@@ -16,6 +16,10 @@ PortCall Desk is an Atlassian Forge app that runs on Atlassian's infrastructure 
 - It does not store personal data outside your Jira site.
 - It does not use cookies, analytics or advertising.
 
+## Logs
+
+The Forge platform records invocation metrics and error logs for the app, and the developer can see them in the Atlassian Developer Console. The app writes no log messages of its own. Platform error logs can contain an error message, which may include a vessel name or an issue key. You can turn off the developer's access to logs for your site in Atlassian Administration after installing the app.
+
 ## The Rovo agent and MCP tools
 
 If you talk to the "Husbanding Coordinator" agent in Rovo, or call the app's tools through Atlassian's Rovo MCP server, your messages are processed by Atlassian under Atlassian's own terms and privacy policy. The app itself only receives the values needed to run the action you asked for.
